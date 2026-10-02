@@ -47,6 +47,8 @@ Die I2C-Adresse des verwendeten Sensors ist:
 0x77
 ```
 
+![raspberrypi](images/raspberrypi.jpg)
+
 ### C-Version
 
 Die erste Version wurde in C umgesetzt.
@@ -276,6 +278,8 @@ Das Dashboard enthält getrennte Panels für:
 - Luftdruck in hPa
 
 Dadurch können die Messwerte über die Zeit beobachtet werden.
+
+![Grafana Dashboard](images/grafana.png)
 
 ## systemd Service
 
