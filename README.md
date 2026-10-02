@@ -16,10 +16,10 @@ C / Python
 MQTT Publish
     ↓
 Proxmox Host
-192.168.178.52
+192.168.xxx.xxx
     ↓ DNAT Port 1883
 Ubuntu Server VM
-10.10.10.10
+10.10.xxx.xxx
     ↓
 Mosquitto
     ↓
@@ -29,6 +29,7 @@ PostgreSQL
     ↓
 Grafana
 ```
+![Systemarchitektur](diagrams/architecture.svg)
 
 ## Raspberry Pi
 
@@ -130,19 +131,19 @@ Dadurch können die C- und Python-Version miteinander verglichen werden.
 Die Ubuntu-VM befindet sich in einem internen Proxmox-Netzwerk:
 
 ```text
-10.10.10.0/24
+10.10.xxx.0/24
 ```
 
 Ubuntu Server:
 
 ```text
-10.10.10.10
+10.10.xxx.xxx
 ```
 
 Der Proxmox-Host ist über WLAN mit dem Heimnetz verbunden:
 
 ```text
-192.168.178.52
+192.168.xxx.xxx
 ```
 
 Für den Zugriff auf interne Dienste werden DNAT-Regeln mit nftables verwendet.
@@ -150,11 +151,11 @@ Für den Zugriff auf interne Dienste werden DNAT-Regeln mit nftables verwendet.
 Beispiele:
 
 ```text
-192.168.178.52:2222 → 10.10.10.10:22
-192.168.178.52:5678 → 10.10.10.10:5678
-192.168.178.52:9443 → 10.10.10.10:9443
-192.168.178.52:1883 → 10.10.10.10:1883
-192.168.178.52:3000 → 10.10.10.10:3000
+192.168.xxx.xxx:2222 → 10.10.xxx.xxx:22
+192.168.xxx.xxx:5678 → 10.10.xxx.xxx:5678
+192.168.xxx.xxx:9443 → 10.10.xxx.xxx:9443
+192.168.xxx.xxx:1883 → 10.10.xxx.xxx:1883
+192.168.xxx.xxx:3000 → 10.10.xxx.xxx:3000
 ```
 
 Zusätzlich wird NAT/Masquerading verwendet, damit die VM über den Proxmox-Host auf das Internet zugreifen kann.
@@ -189,7 +190,7 @@ Beispiel für einen manuellen Test:
 
 ```bash
 mosquitto_pub \
-  -h 192.168.178.52 \
+  -h 192.168.xxx.xxx \
   -p 1883 \
   -t home/sensor/test \
   -m "MQTT test"
@@ -229,6 +230,8 @@ pressure
 ```
 
 und in PostgreSQL gespeichert.
+
+![n8n Workflow](images/n8n-workflow.png)
 
 ## PostgreSQL
 
@@ -273,6 +276,21 @@ Das Dashboard enthält getrennte Panels für:
 - Luftdruck in hPa
 
 Dadurch können die Messwerte über die Zeit beobachtet werden.
+
+## systemd Service
+
+Die C-Anwendung wird auf dem Raspberry Pi als systemd-Service betrieben.
+
+Dadurch startet die Anwendung automatisch beim Booten des Raspberry Pi und wird bei einem Fehler automatisch neu gestartet.
+
+Status:
+
+```bash
+systemctl status bme280.service
+
+journalctl -u bme280.service -f
+```
+![Systemd service](images/systemd.png)
 
 ## Docker / Portainer
 
@@ -340,8 +358,6 @@ Besonders wichtig ist dabei nicht nur die reine Sensorabfrage, sondern der kompl
 
 Geplante Erweiterungen:
 
-- Raspberry-Pi-Anwendung als systemd-Service betreiben
-- Logging mit `journalctl`
 - Fehler- und Ausfallerkennung
 - Monitoring für MQTT und Sensorverfügbarkeit
 - Benachrichtigungen bei Fehlern

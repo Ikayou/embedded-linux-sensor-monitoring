@@ -1,0 +1,62 @@
+@startuml
+
+title Raspberry Pi BME280 Monitoring Architecture
+
+skinparam shadowing false
+skinparam componentStyle rectangle
+
+rectangle "Raspberry Pi 4" {
+    rectangle "BME280 Sensor" as bme
+    rectangle "C / Python Application" as app
+    rectangle "systemd Service" as svc
+}
+
+rectangle "Home Network" {
+
+    rectangle "Altes MacBook Pro\nmit Proxmox VE" as macbook {
+
+        rectangle "Proxmox Firewall" as fw
+        rectangle "NAT / DNAT" as nat
+
+        rectangle "Ubuntu Server VM" as ubuntu {
+
+            rectangle "Mosquitto\nMQTT Broker" as mosq
+
+            rectangle "Docker Environment" {
+                rectangle "n8n" as n8n
+                database "PostgreSQL" as db
+                rectangle "Grafana" as graf
+                rectangle "Portainer" as portainer
+            }
+        }
+    }
+}
+
+bme --> app : I2C
+svc --> app : Autostart / Restart
+
+app --> nat : MQTT / JSON
+nat --> fw
+fw --> mosq : TCP 1883
+
+mosq --> n8n : MQTT Trigger
+n8n --> db : Sensor-Daten speichern
+db --> graf : SQL-Abfragen / Visualisierung
+
+portainer ..> n8n : Container-Verwaltung
+portainer ..> db
+portainer ..> graf
+
+note right of app
+  Temperatur
+  Luftfeuchtigkeit
+  Luftdruck
+end note
+
+note bottom of svc
+  Automatischer Start beim Booten
+  Neustart bei Fehlern
+  Logs über journalctl
+end note
+
+@enduml
