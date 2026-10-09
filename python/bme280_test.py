@@ -50,7 +50,7 @@ def publish_mqtt(client, sensor_data):
     if result.rc != mqtt.MQTT_ERR_SUCCESS:
         print("MQTT publish failed")
 
-
+#test
 def main():
 
     bus, calibration_params = open_sensor()
