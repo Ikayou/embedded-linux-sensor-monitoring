@@ -4,17 +4,19 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
+
+permissions:
+  contents: write
 
 jobs:
-  test:
+  test-and-release:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Install C dependencies
         run: |
@@ -31,3 +33,7 @@ jobs:
       - name: Check Python syntax
         run: |
           python3 -m py_compile python/bme280_test.py
+
+      - name: Update deploy branch
+        run: |
+          git push origin HEAD:refs/heads/deploy --force
