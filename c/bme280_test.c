@@ -10,7 +10,7 @@
 
 
 // ========================================
-// Messergebnis
+// 測定結果
 // ========================================
 
 struct SensorData {
@@ -21,7 +21,7 @@ struct SensorData {
 
 
 // ========================================
-// Kalibrierwerte des BME280
+// BME280の補正値
 // ========================================
 
 struct CalibrationData {
@@ -50,7 +50,7 @@ struct CalibrationData {
 
 
 // ========================================
-// Rohdaten
+// 生データ
 // ========================================
 
 struct RawData {
@@ -61,7 +61,7 @@ struct RawData {
 
 
 // ========================================
-// I2C-Verbindung
+// I2C接続
 // ========================================
 
 int open_i2c(void) {
@@ -84,7 +84,7 @@ int open_i2c(void) {
 
 
 // ========================================
-// Allgemeine Funktion zum Lesen von Registern
+// レジスタを読む共通関数
 // ========================================
 
 int read_registers(
@@ -107,7 +107,7 @@ int read_registers(
 
 
 // ========================================
-// Ein Byte in ein Register schreiben
+// レジスタへ1バイト書く
 // ========================================
 
 int write_register(
@@ -130,7 +130,7 @@ int write_register(
 
 
 // ========================================
-// 16-Bit-Little-Endian umwandeln
+// 16bit little-endianを変換
 // ========================================
 
 uint16_t to_u16(uint8_t low, uint8_t high) {
@@ -143,7 +143,7 @@ int16_t to_s16(uint8_t low, uint8_t high) {
 
 
 // ========================================
-// Kalibrierwerte lesen
+// 補正値を読む
 // ========================================
 
 int read_calibration(
@@ -196,7 +196,7 @@ int read_calibration(
 
 
 // ========================================
-// BME280-Konfiguration
+// BME280設定
 // ========================================
 
 int configure_sensor(int fd) {
@@ -220,7 +220,7 @@ int configure_sensor(int fd) {
 
 
 // ========================================
-// Rohdaten lesen
+// 生データを読む
 // ========================================
 
 int read_raw_data(
@@ -253,7 +253,7 @@ int read_raw_data(
 
 
 // ========================================
-// Temperaturkompensation
+// 温度補正
 // ========================================
 
 double compensate_temperature(
@@ -287,7 +287,7 @@ double compensate_temperature(
 
 
 // ========================================
-// Luftdruckkompensation
+// 気圧補正
 // ========================================
 
 double compensate_pressure(
@@ -346,7 +346,7 @@ double compensate_pressure(
 
 
 // ========================================
-// Luftfeuchtigkeitskompensation
+// 湿度補正
 // ========================================
 
 double compensate_humidity(
@@ -388,7 +388,7 @@ double compensate_humidity(
 
 
 // ========================================
-// Sensor einmal auslesen
+// センサーを1回読む
 // ========================================
 
 int read_sensor(
@@ -430,7 +430,7 @@ int read_sensor(
 
 
 // ========================================
-// Anzeige
+// 表示
 // ========================================
 
 void print_sensor(
