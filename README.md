@@ -4,6 +4,8 @@ Dieses Projekt ist ein kleines Embedded-Linux- und IoT-Homelab auf Basis eines R
 
 Ziel des Projekts ist es, Sensordaten mit C und Python auszulesen, über MQTT an einen Linux-Server zu übertragen, in PostgreSQL zu speichern und anschließend mit Grafana zu visualisieren.
 
+Zusätzlich werden die Bereitstellung von Proxmox-VMs mit Terraform, die Serverkonfiguration mit Ansible und die Freigabe geprüfter Codeänderungen über eine CI/CD-Pipeline mit GitHub Actions automatisiert.
+
 ## Architektur
 
 ```text
@@ -309,6 +311,79 @@ Grafana
 Portainer
 ```
 
+## Terraform: Infrastruktur als Code
+
+Die Konfiguration in [terraform/proxmox](terraform/proxmox) verwendet den Provider `bpg/proxmox`, um zwei virtuelle Maschinen auf dem Proxmox-Knoten `pve` als vollständige Klone des Templates mit der VM-ID `9000` bereitzustellen:
+
+| VM | VM-ID | CPU-Kerne | RAM | Festplatte |
+| --- | --- | --- | --- | --- |
+| `lab-vm01` | 101 | 2 | 2048 MB | 20 GB |
+| `ansible01` | 102 | 1 | 1024 MB | 20 GB |
+
+Die Konfiguration legt außerdem den Speicher `local-lvm`, die Netzwerk-Bridge `vmbr0` sowie statische IPv4-Adressen und ein Gateway fest. Über Cloud-Init werden der Benutzer `yuichiro` und ein SSH-Public-Key eingerichtet.
+
+Voraussetzungen sind eine lokale Terraform-Installation, Zugriff auf die Proxmox-API und ein vorhandenes, für Cloud-Init vorbereitetes Template. Vor der ersten Ausführung wird `terraform/proxmox/terraform.tfvars` anhand von [terraform.tfvars.example](terraform/proxmox/terraform.tfvars.example) angelegt und mit `proxmox_api_token` und `ssh_public_key` befüllt. Die Angaben in `main.tf`, insbesondere API-Endpunkt, VM-IDs, Netzwerk und Benutzername, werden an die eigene Umgebung angepasst.
+
+Ausführung aus dem Repository-Hauptverzeichnis:
+
+```bash
+terraform -chdir=terraform/proxmox init
+terraform -chdir=terraform/proxmox plan
+terraform -chdir=terraform/proxmox apply
+```
+
+Die lokale Datei `terraform.tfvars`, Terraform-State-Dateien und das Verzeichnis `.terraform/` sind über `.gitignore` ausgeschlossen.
+
+## Ansible: Serverkonfiguration
+
+Das Playbook [ansible/playbook.yml](ansible/playbook.yml) konfiguriert die Hosts der Inventory-Gruppe `lab` über SSH und führt administrative Aufgaben mit `become: true` aus.
+
+Automatisierte Schritte:
+
+- APT-Paketindex aktualisieren.
+- Basispakete installieren: `curl`, `git`, `vim`, `htop` und `ca-certificates`.
+- Zeitzone auf `Europe/Berlin` setzen.
+- Docker über das Paket `docker.io` installieren und den Dienst starten sowie beim Booten aktivieren.
+- Den Benutzer `yuichiro` zur Gruppe `docker` hinzufügen.
+
+Auf dem Steuerrechner werden Ansible und die Collection `community.general` für das Zeitzonen-Modul benötigt. Die Ziel-VM muss über SSH erreichbar sein und dem verwendeten Benutzer die benötigten sudo-Rechte gewähren.
+
+Vor der Ausführung wird `ansible/inventory.ini` anhand von [inventory.ini.example](ansible/inventory.ini.example) angelegt und mit der Zieladresse und dem SSH-Benutzer befüllt. Der Benutzername im Playbook muss ebenfalls zur eigenen Umgebung passen. Die lokale Inventory-Datei ist über `.gitignore` ausgeschlossen.
+
+Ausführung aus dem Repository-Hauptverzeichnis:
+
+```bash
+ansible-galaxy collection install community.general
+ansible-playbook -i ansible/inventory.ini ansible/playbook.yml
+```
+
+Damit steht eine automatisierte Grundkonfiguration der Lab-VM einschließlich Docker zur Verfügung.
+
+## CI/CD mit GitHub Actions
+
+Der Workflow [Sensor CI](.github/workflows/ci.yml) startet bei jedem Push auf den Branch `main` und läuft auf einem Ubuntu-Runner.
+
+Die Pipeline führt folgende Schritte aus:
+
+1. Repository auschecken und die C-Abhängigkeit `libmosquitto-dev` installieren.
+2. `c/bme280_test.c` mit `gcc -Wall -Wextra` kompilieren und gegen `libmosquitto` linken.
+3. Die Python-Syntax mit `python3 -m py_compile python/bme280_test.py` prüfen.
+4. Nach erfolgreichen Prüfungen den Branch `deploy` per Force-Push auf den geprüften Commit setzen.
+
+```text
+Push auf main
+    ↓
+C-Build
+    ↓
+Python-Syntaxprüfung
+    ↓ nur bei Erfolg
+Branch deploy aktualisieren
+```
+
+Der im Repository definierte CD-Schritt besteht in der Freigabe des geprüften Codes über den Branch `deploy`. Dafür besitzt der Workflow die Berechtigung `contents: write`. Die Prüfungen decken die Kompilierung und Python-Syntax ab. Für eine Funktionsprüfung mit dem BME280 ist zusätzlich ein Test auf dem Raspberry Pi erforderlich.
+
+Terraform und Ansible werden mit den oben gezeigten Befehlen unabhängig von diesem Workflow ausgeführt.
+
 ## Aktueller Datenfluss
 
 ```text
@@ -350,6 +425,9 @@ Mit dem Projekt werden verschiedene Bereiche miteinander verbunden:
 - NAT
 - nftables
 - Proxmox
+- Terraform / Infrastructure as Code
+- Ansible / Konfigurationsmanagement
+- CI/CD mit GitHub Actions
 - Docker
 - Portainer
 - n8n
