@@ -1,0 +1,42 @@
+---
+- name: Configure lab VM
+  hosts: lab
+  become: true
+
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Install basic packages
+      ansible.builtin.apt:
+        name:
+          - curl
+          - git
+          - vim
+          - htop
+          - ca-certificates
+        state: present
+
+    - name: Set timezone
+      community.general.timezone:
+        name: Europe/Berlin
+
+    - name: Install Docker
+      ansible.builtin.apt:
+        name:
+          - docker.io
+        state: present
+
+    - name: Enable and start Docker
+      ansible.builtin.systemd:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: Add yuichiro to docker group
+      ansible.builtin.user:
+        name: yuichiro
+        groups: docker
+        append: true
