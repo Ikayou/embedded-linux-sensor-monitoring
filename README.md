@@ -369,4 +369,3 @@ Geplante Erweiterungen:
 - VPN / Site-to-Site-VPN testen
 - weitere Sensoren hinzufügen
 - Vergleich der C- und Python-Implementierung
-- CI/CD für die Raspberry-Pi-Anwendung
