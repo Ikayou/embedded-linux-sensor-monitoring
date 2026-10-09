@@ -19,6 +19,8 @@ resource "proxmox_virtual_environment_vm" "lab_vm01" {
   node_name = "pve"
   vm_id     = 101
 
+  on_boot = true
+
   clone {
     vm_id = 9000
     full  = true
@@ -70,6 +72,8 @@ resource "proxmox_virtual_environment_vm" "ansible01" {
   name      = "ansible01"
   node_name = "pve"
   vm_id     = 102
+
+  on_boot = true
 
   clone {
     vm_id = 9000
