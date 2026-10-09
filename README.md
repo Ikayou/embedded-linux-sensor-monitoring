@@ -47,7 +47,9 @@ Die I2C-Adresse des verwendeten Sensors ist:
 0x77
 ```
 
-![raspberrypi](images/raspberrypi.jpg)
+<p align="center">
+  <img src="images/raspberrypi.jpg" width="700">
+</p>
 
 ### C-Version
 
